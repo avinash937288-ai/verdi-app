@@ -1,0 +1,7 @@
+{
+  "name": "UP Homeguard Vardi Web-App",
+  "description": "A comprehensive exam preparation platform for UP Homeguard aspirants featuring 11 core syllabus pillars, multilingual support (Hindi, English, Bhojpuri), and real-time mock tests.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
