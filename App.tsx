@@ -21,7 +21,9 @@ import {
   Settings, 
   LayoutDashboard, 
   Database, 
-  Camera 
+  Camera,
+  Star,
+  Globe
 } from 'lucide-react';
 
 const MOCK_TESTS: MockTestMeta[] = Array.from({ length: 20 }, (_, i) => ({
@@ -38,18 +40,17 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const startTopicSprint = async (pillar: Pillar) => {
+  const startTopicSprint = async (pillar: Pillar | string, count: number = 20) => {
     setLoading(true);
     setError(null);
     try {
-      // Sprint updated to 20 questions
-      const questions = await generateQuestions(pillar, 20); 
+      const questions = await generateQuestions(pillar, count); 
       if (!questions || questions.length === 0) throw new Error("Could not load questions.");
       
       setActiveSession({
         id: Math.random().toString(36).substr(2, 9),
-        type: 'SPRINT',
-        pillar,
+        type: count >= 100 ? 'MARATHON' : 'SPRINT',
+        pillar: typeof pillar === 'string' && pillar !== 'Daily Challenge' ? pillar as any : undefined,
         questions,
         userAnswers: new Array(questions.length).fill(null),
         startTime: Date.now(),
@@ -64,7 +65,6 @@ const App: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fast opening: requesting 100 questions.
       const questions = await generateQuestions(mockId ? `Full Mock Test ${mockId}` : "Mixed GK Marathon", 100); 
       if (!questions || questions.length === 0) throw new Error("Could not load marathon questions.");
 
@@ -83,7 +83,6 @@ const App: React.FC = () => {
 
   const handleTestComplete = async (session: TestSession) => {
     setLoading(true);
-    // Instant Bhojpuri Shayari from local/API bridge
     const shayari = await getBhojpuriShayari();
     setActiveSession({ ...session, shayari });
     setView('RESULT');
@@ -95,7 +94,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
         <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mb-6"></div>
         <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">FAST OPENING ACTIVE...</h2>
-        <p className="text-slate-500 mt-2 font-medium">Fetching 100 unique questions from the Bridge...</p>
+        <p className="text-slate-500 mt-2 font-medium">Fetching unique questions from the Bridge...</p>
       </div>
     );
   }
@@ -125,6 +124,7 @@ const App: React.FC = () => {
       <div className="flex-1">
         {view === 'HOME' && (
           <main className="max-w-7xl mx-auto px-4 py-8 animate-in">
+            {/* Hero Section */}
             <div className="relative overflow-hidden rounded-[2.5rem] khaki-gradient p-12 text-white mb-12 shadow-2xl vardi-shadow">
               <div className="relative z-10 max-w-2xl text-left">
                 <div className="flex items-center gap-3 mb-4">
@@ -136,6 +136,40 @@ const App: React.FC = () => {
                 <div className="flex flex-wrap gap-4">
                   <button onClick={() => startMarathon()} className="px-10 py-5 bg-white text-amber-700 rounded-2xl font-black text-lg shadow-2xl shadow-amber-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"><Trophy className="w-6 h-6" /> Start Full Marathon</button>
                   <button onClick={() => setView('MOCKS_LIST')} className="px-8 py-5 bg-white/10 text-white rounded-2xl font-black text-lg border border-white/20 hover:bg-white/20 transition-all">Browse Mocks</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Daily Special Section */}
+            <div className="mb-16">
+              <div className="flex items-center gap-3 mb-8">
+                <Star className="w-8 h-8 text-amber-500 fill-amber-500" />
+                <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Daily Dose</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white border-2 border-amber-100 p-8 rounded-[2.5rem] vardi-shadow group hover:border-amber-400 transition-all cursor-pointer" onClick={() => startTopicSprint('Daily Challenge', 15)}>
+                  <div className="w-16 h-16 bg-amber-500 rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-amber-100 group-hover:scale-110 transition-transform">
+                    <Calendar className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-black text-slate-900 text-xl uppercase tracking-tight mb-2">Today's Special Quiz</h4>
+                  <p className="text-slate-500 text-sm mb-6">Real-time questions synced from Today's Current Affairs & Events.</p>
+                  <div className="inline-flex items-center gap-2 text-amber-600 font-black text-xs uppercase tracking-widest group-hover:gap-4 transition-all">Start Daily Quiz →</div>
+                </div>
+                <div className="bg-white border-2 border-blue-100 p-8 rounded-[2.5rem] vardi-shadow group hover:border-blue-400 transition-all cursor-pointer" onClick={() => startTopicSprint(Pillar.CURRENT_AFFAIRS, 15)}>
+                  <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-blue-100 group-hover:scale-110 transition-transform">
+                    <Globe className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-black text-slate-900 text-xl uppercase tracking-tight mb-2">International News</h4>
+                  <p className="text-slate-500 text-sm mb-6">Based on today's international headlines and updates.</p>
+                  <div className="inline-flex items-center gap-2 text-blue-600 font-black text-xs uppercase tracking-widest group-hover:gap-4 transition-all">Check Now →</div>
+                </div>
+                <div className="bg-white border-2 border-emerald-100 p-8 rounded-[2.5rem] vardi-shadow group hover:border-emerald-400 transition-all cursor-pointer" onClick={() => startTopicSprint(Pillar.HISTORY, 15)}>
+                  <div className="w-16 h-16 bg-emerald-500 rounded-3xl flex items-center justify-center text-white mb-6 shadow-xl shadow-emerald-100 group-hover:scale-110 transition-transform">
+                    <RefreshCw className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-black text-slate-900 text-xl uppercase tracking-tight mb-2">History of Today</h4>
+                  <p className="text-slate-500 text-sm mb-6">Historical events that happened on this specific day.</p>
+                  <div className="inline-flex items-center gap-2 text-emerald-600 font-black text-xs uppercase tracking-widest group-hover:gap-4 transition-all">Learn History →</div>
                 </div>
               </div>
             </div>
